@@ -44,14 +44,21 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         let index = indexPath.item
         let person = people[index]
         
-        let ac = UIAlertController(title: "Edit person", message: nil, preferredStyle: .actionSheet)
+        let ac = UIAlertController(title: "Edit or share", message: nil, preferredStyle: .actionSheet)
         
         ac.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
             self?.renamePerson(person)
         })
+        
+        ac.addAction(UIAlertAction(title: "Share", style: .default) { [weak self] _ in
+            self?.sharePerson(person)
+        })
+        
         ac.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             self?.deletePerson(index: index)
         })
+
+        
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         if let popoverController = ac.popoverPresentationController {
@@ -136,6 +143,20 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     func deletePerson(index: Int) {
         people.remove(at: index)
         collectionView.reloadData()
+    }
+    
+    func sharePerson(_ person: Person) {
+        let imagePath = getDocumentsDirectory().appendingPathComponent(person.image)
+        let image = UIImage(contentsOfFile: imagePath.path)
+        let name = person.name
+        
+        let vc = UIActivityViewController(activityItems: [image ?? "", name], applicationActivities: [])
+        
+        if let popoverController = vc.popoverPresentationController {
+            configurePopover(popoverController: popoverController)
+        }
+        
+        present(vc, animated: true)
     }
     
     func configurePopover(popoverController: UIPopoverPresentationController) {
