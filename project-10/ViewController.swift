@@ -41,21 +41,18 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     }
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let person = people[indexPath.item]
+        let index = indexPath.item
+        let person = people[index]
         
-        let ac = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
+        let ac = UIAlertController(title: "Edit person", message: nil, preferredStyle: .actionSheet)
         
-        ac.addTextField()
-        
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        ac.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak ac] _ in
-            guard let newName = ac?.textFields?[0].text else { return }
-            
-            person.name = newName
-            
-            self?.collectionView.reloadData()
+        ac.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
+            self?.renamePerson(person)
         })
+        ac.addAction(UIAlertAction(title: "Delete", style: .default) { [weak self] _ in
+            self?.deletePerson(index: index)
+        })
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         present(ac, animated: true)
     }
@@ -91,6 +88,29 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     func getDocumentsDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return paths[0]
+    }
+    
+    func renamePerson(_ person: Person) {
+        let ac = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
+        
+        ac.addTextField()
+        
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        ac.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak ac] _ in
+            guard let newName = ac?.textFields?[0].text else { return }
+            
+            person.name = newName
+            
+            self?.collectionView.reloadData()
+        })
+        
+        present(ac, animated: true)
+    }
+    
+    func deletePerson(index: Int) {
+        people.remove(at: index)
+        collectionView.reloadData()
     }
 }
 
