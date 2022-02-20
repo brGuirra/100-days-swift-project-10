@@ -55,24 +55,28 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         if let popoverController = ac.popoverPresentationController {
-            popoverController.sourceView = self.view
-            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
-            
-            // Remove the arrow of the popover to center
-            // its content on the view
-            popoverController.permittedArrowDirections = []
+            configurePopover(popoverController: popoverController)
         }
         
         present(ac, animated: true)
     }
     
     @objc func addNewPerson() {
-        let picker = UIImagePickerController()
-        // Allows user to cropt the picture they select
-        picker.allowsEditing = true
-        picker.sourceType = .camera
-        picker.delegate = self
-        present(picker, animated: true)
+        let ac = UIAlertController(title: "Add picture", message: nil, preferredStyle: .actionSheet)
+        
+        ac.addAction(UIAlertAction(title: "Choose from your library", style: .default) { [weak self] _ in
+            self?.pickPhoto(useCamera: false)
+        })
+        
+        ac.addAction(UIAlertAction(title: "Take a photo", style: .default) { [weak self] _ in
+            self?.pickPhoto(useCamera: true)
+        })
+        
+        if let popoverController = ac.popoverPresentationController {
+            configurePopover(popoverController: popoverController)
+        }
+        
+        present(ac, animated: true)
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
@@ -107,7 +111,10 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     func renamePerson(_ person: Person) {
         let ac = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
         
-        ac.addTextField()
+        // Capitalize the firs letter on the text field
+        ac.addTextField { textField in
+            textField.autocapitalizationType = .words
+        }
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
@@ -120,12 +127,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         })
         
         if let popoverController = ac.popoverPresentationController {
-            popoverController.sourceView = self.view
-            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
-            
-            // Remove the arrow of the popover to center
-            // its content on the view
-            popoverController.permittedArrowDirections = []
+            configurePopover(popoverController: popoverController)
         }
         
         present(ac, animated: true)
@@ -134,6 +136,28 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     func deletePerson(index: Int) {
         people.remove(at: index)
         collectionView.reloadData()
+    }
+    
+    func configurePopover(popoverController: UIPopoverPresentationController) {
+        popoverController.sourceView = self.view
+        popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+        
+        // Remove the arrow of the popover to center
+        // its content on the view
+        popoverController.permittedArrowDirections = []
+    }
+    
+    func pickPhoto(useCamera: Bool) {
+        let picker = UIImagePickerController()
+        // Allows user to cropt the picture they select
+        picker.allowsEditing = true
+        picker.delegate = self
+        
+        if useCamera {
+            picker.sourceType = .camera
+        }
+        
+        present(picker, animated: true)
     }
 }
 
