@@ -49,10 +49,19 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         ac.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
             self?.renamePerson(person)
         })
-        ac.addAction(UIAlertAction(title: "Delete", style: .default) { [weak self] _ in
+        ac.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             self?.deletePerson(index: index)
         })
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        if let popoverController = ac.popoverPresentationController {
+            popoverController.sourceView = self.view
+            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            
+            // Remove the arrow of the popover to center
+            // its content on the view
+            popoverController.permittedArrowDirections = []
+        }
         
         present(ac, animated: true)
     }
@@ -61,27 +70,32 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         let picker = UIImagePickerController()
         // Allows user to cropt the picture they select
         picker.allowsEditing = true
+        picker.sourceType = .camera
         picker.delegate = self
         present(picker, animated: true)
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        guard let image = info[.editedImage] as? UIImage else { return }
+        let isSourceTypeAvailable = UIImagePickerController.isSourceTypeAvailable(picker.sourceType)
         
-        let imageName = UUID().uuidString
-        let imagePath = getDocumentsDirectory().appendingPathComponent(imageName)
-        
-        // Writes the image data to disk
-        if let jpegData = image.jpegData(compressionQuality: 0.8) {
-            try? jpegData.write(to: imagePath)
+        if isSourceTypeAvailable {
+            guard let image = info[.editedImage] as? UIImage else { return }
+            
+            let imageName = UUID().uuidString
+            let imagePath = getDocumentsDirectory().appendingPathComponent(imageName)
+            
+            // Writes the image data to disk
+            if let jpegData = image.jpegData(compressionQuality: 0.8) {
+                try? jpegData.write(to: imagePath)
+            }
+            
+            let person = Person(name: "Unkown", image: imageName)
+            people.append(person)
+            
+            collectionView.reloadData()
+            
+            dismiss(animated: true)
         }
-        
-        let person = Person(name: "Unkown", image: imageName)
-        people.append(person)
-        
-        collectionView.reloadData()
-        
-        dismiss(animated: true)
     }
     
     // Get the Documents directory path
@@ -105,8 +119,17 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
             self?.collectionView.reloadData()
         })
         
+        if let popoverController = ac.popoverPresentationController {
+            popoverController.sourceView = self.view
+            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            
+            // Remove the arrow of the popover to center
+            // its content on the view
+            popoverController.permittedArrowDirections = []
+        }
+        
         present(ac, animated: true)
-    }
+}
     
     func deletePerson(index: Int) {
         people.remove(at: index)
