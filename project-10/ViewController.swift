@@ -14,6 +14,14 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         super.viewDidLoad()
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewPerson))
+        
+        let defaults = UserDefaults.standard
+        
+        if let savedPeople = defaults.object(forKey: "people") as? Data {
+            if let decodedPeople = try? NSKeyedUnarchiver.unarchivedArrayOfObjects(ofClasses: [Person.self], from: savedPeople) as? [Person] {
+                people = decodedPeople
+            }
+        }
     }
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -44,7 +52,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         let index = indexPath.item
         let person = people[index]
         
-        let ac = UIAlertController(title: "Edit or share", message: nil, preferredStyle: .actionSheet)
+        let ac = UIAlertController(title: "Edit or share", message: "Contact: \(person.name)", preferredStyle: .actionSheet)
         
         ac.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
             self?.renamePerson(person)
@@ -103,6 +111,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
             let person = Person(name: "Unkown", image: imageName)
             people.append(person)
             
+            save()
             collectionView.reloadData()
             
             dismiss(animated: true)
@@ -130,6 +139,7 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
             
             person.name = newName
             
+            self?.save()
             self?.collectionView.reloadData()
         })
         
@@ -180,5 +190,12 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         
         present(picker, animated: true)
     }
+    
+    func save() {
+        if let savedData = try? NSKeyedArchiver.archivedData(withRootObject: people, requiringSecureCoding: false) {
+            let defaults = UserDefaults.standard
+            defaults.set(savedData, forKey: "people")
+            
+        }
+    }
 }
-
